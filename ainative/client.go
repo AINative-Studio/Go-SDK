@@ -46,9 +46,13 @@ type Client struct {
 	tracer trace.Tracer
 	
 	// API service clients
-	ZeroDB     *ZeroDBService
-	AgentSwarm *AgentSwarmService
-	Auth       *AuthService
+	ZeroDB              *ZeroDBService
+	AgentSwarm          *AgentSwarmService
+	AgentOrchestration  *AgentOrchestrationService
+	AgentCoordination   *AgentCoordinationService
+	AgentLearning       *AgentLearningService
+	AgentState          *AgentStateService
+	Auth                *AuthService
 }
 
 // Config holds the configuration for the AINative client
@@ -224,8 +228,12 @@ func NewClient(config *Config) (*Client, error) {
 	// Initialize service clients
 	client.ZeroDB = NewZeroDBService(client)
 	client.AgentSwarm = NewAgentSwarmService(client)
+	client.AgentOrchestration = NewAgentOrchestrationService(client)
+	client.AgentCoordination = NewAgentCoordinationService(client)
+	client.AgentLearning = NewAgentLearningService(client)
+	client.AgentState = NewAgentStateService(client)
 	client.Auth = NewAuthService(client)
-	
+
 	return client, nil
 }
 
