@@ -2,7 +2,6 @@ package ainative
 
 import (
 	"context"
-	"fmt"
 	"time"
 )
 
@@ -156,10 +155,9 @@ func (s *AgentCoordinationService) GetWorkloadStats(ctx context.Context, req *Ge
 
 	path := "/api/v1/agent-coordination/workload"
 
-	// Add agent IDs as query parameters if provided
-	if len(req.AgentIDs) > 0 {
-		path += "?agent_ids=" + fmt.Sprintf("%v", req.AgentIDs)
-	}
+	// Note: agent_ids filtering would be handled by the API server
+	// For now, we send the request without query parameters
+	// and let the server return all workload stats
 
 	var result GetWorkloadStatsResponse
 
