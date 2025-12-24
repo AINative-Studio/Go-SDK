@@ -8,10 +8,11 @@ import (
 
 // ZeroDBService handles ZeroDB operations
 type ZeroDBService struct {
-	client   *Client
-	Projects *ProjectsService
-	Vectors  *VectorsService
-	Memory   *MemoryService
+	client     *Client
+	Projects   *ProjectsService
+	Vectors    *VectorsService
+	Memory     *MemoryService
+	Embeddings *EmbeddingsService
 }
 
 // NewZeroDBService creates a new ZeroDB service
@@ -19,11 +20,12 @@ func NewZeroDBService(client *Client) *ZeroDBService {
 	service := &ZeroDBService{
 		client: client,
 	}
-	
+
 	service.Projects = &ProjectsService{client: client}
 	service.Vectors = &VectorsService{client: client}
 	service.Memory = &MemoryService{client: client}
-	
+	service.Embeddings = &EmbeddingsService{client: client}
+
 	return service
 }
 
