@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ainative/go-sdk/ainative"
+	"github.com/AINative-Studio/Go-SDK/ainative"
 	"gopkg.in/yaml.v3"
 )
 

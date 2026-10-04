@@ -18,7 +18,7 @@ High-performance Go client library for AINative Studio APIs with advanced concur
 
 ```bash
 go mod init your-project
-go get github.com/ainative/go-sdk
+go get github.com/AINative-Studio/Go-SDK
 ```
 
 ### Basic Usage
@@ -31,7 +31,7 @@ import (
     "fmt"
     "log"
     
-    "github.com/ainative/go-sdk/ainative"
+    "github.com/AINative-Studio/Go-SDK/ainative"
 )
 
 func main() {
@@ -121,7 +121,7 @@ import (
     "net/http"
     "time"
     
-    "github.com/ainative/go-sdk/ainative"
+    "github.com/AINative-Studio/Go-SDK/ainative"
 )
 
 client, err := ainative.NewClient(&ainative.Config{
@@ -206,6 +206,8 @@ See the [`examples/`](./examples/) directory for comprehensive examples:
 
 ## 🤝 Contributing
 
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, style conventions, and the pull request process. Quick version:
+
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/my-feature`
 3. Make changes and add tests
@@ -218,9 +220,9 @@ Licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ## 🔗 Links
 
-- [API Documentation](https://docs.ainative.studio)
+- [Documentation](https://docs.ainative.studio/sdk/go)
+- [API Reference](https://api.ainative.studio/docs-enhanced)
 - [Developer Dashboard](https://app.ainative.studio/developer-settings)
-- [Python SDK](../python/)
-- [TypeScript SDK](../typescript/)
-- [Load Testing Tools](../../load-testing/)
-- [API Sandbox](../../api-sandbox/)
+- [Python SDK](https://github.com/AINative-Studio/python-sdk)
+- [TypeScript SDK](https://github.com/AINative-Studio/TypeScript-SDK)
+- [Issues & feature requests](https://github.com/AINative-Studio/Go-SDK/issues)

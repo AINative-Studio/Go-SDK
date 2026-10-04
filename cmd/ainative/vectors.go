@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/ainative/go-sdk/ainative"
+	"github.com/AINative-Studio/Go-SDK/ainative"
 	"github.com/spf13/cobra"
 )
 

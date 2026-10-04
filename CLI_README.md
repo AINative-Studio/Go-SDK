@@ -23,7 +23,7 @@ sudo mv ainative /usr/local/bin/
 ### Using go install
 
 ```bash
-go install github.com/ainative/go-sdk/cmd/ainative@latest
+go install github.com/AINative-Studio/Go-SDK/cmd/ainative@latest
 ```
 
 ### Binary Release (Coming Soon)
@@ -224,7 +224,7 @@ ainative projects list -o table
 
 ```bash
 # Clone repository
-git clone https://github.com/ainative/go-sdk.git
+git clone https://github.com/AINative-Studio/Go-SDK.git
 cd go-sdk/cmd/ainative
 
 # Install dependencies
@@ -350,7 +350,7 @@ MIT License - see LICENSE file for details
 ## Support
 
 - **Documentation**: https://docs.ainative.studio
-- **Issues**: https://github.com/ainative/go-sdk/issues
+- **Issues**: https://github.com/AINative-Studio/Go-SDK/issues
 - **Discord**: https://discord.gg/ainative
 - **Email**: support@ainative.studio
 

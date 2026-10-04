@@ -1,4 +1,4 @@
-module github.com/ainative/go-sdk
+module github.com/AINative-Studio/Go-SDK
 
 go 1.25.0
 

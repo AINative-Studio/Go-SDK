@@ -144,7 +144,7 @@ if err != nil {
 
 ## Learn More
 
-- [GO SDK Documentation](https://pkg.go.dev/github.com/ainative/go-sdk)
+- [GO SDK Documentation](https://pkg.go.dev/github.com/AINative-Studio/Go-SDK)
 - [ZeroDB Documentation](https://docs.ainative.studio/zerodb)
 - [Embeddings API Guide](https://docs.ainative.studio/embeddings)
 - [BAAI/bge-small-en-v1.5 Model](https://huggingface.co/BAAI/bge-small-en-v1.5)

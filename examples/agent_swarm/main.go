@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ainative/go-sdk/ainative"
+	"github.com/AINative-Studio/Go-SDK/ainative"
 )
 
 func main() {
