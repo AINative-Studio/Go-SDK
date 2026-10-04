@@ -36,7 +36,7 @@ func TestGenerate_Success(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -106,7 +106,7 @@ func TestGenerate_DefaultModel(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -151,7 +151,7 @@ func TestGenerate_Normalize(t *testing.T) {
 				}
 
 				w.Header().Set("Content-Type", "application/json")
-				json.NewEncoder(w).Encode(response)
+				_ = json.NewEncoder(w).Encode(response)
 			}))
 			defer server.Close()
 
@@ -192,7 +192,7 @@ func TestGenerate_MultipleTexts(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -225,17 +225,17 @@ func TestEmbedAndStore_Success(t *testing.T) {
 		assert.Equal(t, "tutorials", req.Namespace)
 
 		response := EmbedAndStoreResponse{
-			Success:              true,
-			VectorsStored:        2,
-			EmbeddingsGenerated:  2,
-			Model:                "BAAI/bge-small-en-v1.5",
-			Dimensions:           384,
-			Namespace:            "tutorials",
-			ProcessingTimeMs:     150.5,
+			Success:             true,
+			VectorsStored:       2,
+			EmbeddingsGenerated: 2,
+			Model:               "BAAI/bge-small-en-v1.5",
+			Dimensions:          384,
+			Namespace:           "tutorials",
+			ProcessingTimeMs:    150.5,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -280,17 +280,17 @@ func TestEmbedAndStore_WithMetadata(t *testing.T) {
 		assert.Equal(t, "dl", req.MetadataList[1]["category"])
 
 		response := EmbedAndStoreResponse{
-			Success:              true,
-			VectorsStored:        2,
-			EmbeddingsGenerated:  2,
-			Model:                "BAAI/bge-small-en-v1.5",
-			Dimensions:           384,
-			Namespace:            "default",
-			ProcessingTimeMs:     100.0,
+			Success:             true,
+			VectorsStored:       2,
+			EmbeddingsGenerated: 2,
+			Model:               "BAAI/bge-small-en-v1.5",
+			Dimensions:          384,
+			Namespace:           "default",
+			ProcessingTimeMs:    100.0,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -366,7 +366,7 @@ func TestSemanticSearch_Success(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -425,7 +425,7 @@ func TestSemanticSearch_DefaultLimit(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -458,7 +458,7 @@ func TestSemanticSearch_CustomThreshold(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -542,7 +542,7 @@ func TestListModels_Success(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(models)
+		_ = json.NewEncoder(w).Encode(models)
 	}))
 	defer server.Close()
 
@@ -582,7 +582,7 @@ func TestHealthCheck_Success(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -620,7 +620,7 @@ func TestGetUsage_Success(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -649,7 +649,7 @@ func TestHTTPError_401(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("X-Request-ID", "req-123")
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"message": "Invalid API key",
 			"code":    "UNAUTHORIZED",
 		})
@@ -679,7 +679,7 @@ func TestHTTPError_429(t *testing.T) {
 		w.Header().Set("X-Request-ID", "req-456")
 		w.Header().Set("Retry-After", "60")
 		w.WriteHeader(http.StatusTooManyRequests)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"message": "Rate limit exceeded",
 			"code":    "RATE_LIMIT_EXCEEDED",
 		})
@@ -711,7 +711,7 @@ func TestHTTPError_422(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"message": "Invalid model specified",
 			"code":    "VALIDATION_ERROR",
 			"details": map[string]interface{}{
@@ -743,7 +743,7 @@ func TestHTTPError_500(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"message": "Internal server error",
 			"code":    "INTERNAL_ERROR",
 		})
@@ -797,7 +797,7 @@ func TestMalformedJSONResponse(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{invalid json}`))
+		_, _ = w.Write([]byte(`{invalid json}`))
 	}))
 	defer server.Close()
 
@@ -865,7 +865,7 @@ func TestSemanticSearch_WithMetadataFilter(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 

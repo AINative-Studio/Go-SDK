@@ -9,19 +9,19 @@ import (
 type APIError struct {
 	// HTTP status code
 	StatusCode int `json:"status_code"`
-	
+
 	// Error message
 	Message string `json:"message"`
-	
+
 	// Error code for programmatic handling
 	Code string `json:"code,omitempty"`
-	
+
 	// Detailed error information
 	Details map[string]interface{} `json:"details,omitempty"`
-	
+
 	// Request ID for debugging
 	RequestID string `json:"request_id,omitempty"`
-	
+
 	// Timestamp of the error
 	Timestamp string `json:"timestamp,omitempty"`
 }
@@ -62,8 +62,8 @@ func (e *APIError) IsRetryable() bool {
 
 // ValidationError represents a validation error
 type ValidationError struct {
-	Field   string `json:"field"`
-	Message string `json:"message"`
+	Field   string      `json:"field"`
+	Message string      `json:"message"`
 	Value   interface{} `json:"value,omitempty"`
 }
 
@@ -105,11 +105,11 @@ func (e *ConfigError) Error() string {
 // Common error codes
 const (
 	ErrorCodeInvalidRequest     = "INVALID_REQUEST"
-	ErrorCodeUnauthorized      = "UNAUTHORIZED"
-	ErrorCodeForbidden         = "FORBIDDEN"
-	ErrorCodeNotFound          = "NOT_FOUND"
-	ErrorCodeRateLimit         = "RATE_LIMIT"
-	ErrorCodeInternalError     = "INTERNAL_ERROR"
+	ErrorCodeUnauthorized       = "UNAUTHORIZED"
+	ErrorCodeForbidden          = "FORBIDDEN"
+	ErrorCodeNotFound           = "NOT_FOUND"
+	ErrorCodeRateLimit          = "RATE_LIMIT"
+	ErrorCodeInternalError      = "INTERNAL_ERROR"
 	ErrorCodeServiceUnavailable = "SERVICE_UNAVAILABLE"
 )
 

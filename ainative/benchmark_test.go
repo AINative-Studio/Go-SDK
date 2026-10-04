@@ -35,7 +35,7 @@ func BenchmarkProjectOperations(b *testing.B) {
 			Status: ProjectStatusActive,
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -84,7 +84,7 @@ func BenchmarkVectorOperations(b *testing.B) {
 				TotalTimeMs:  1.0,
 			}
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
+			_ = json.NewEncoder(w).Encode(response)
 		case "/api/v1/projects/proj_123/database/vectors/search":
 			// Search response
 			response := VectorSearchResponse{
@@ -98,7 +98,7 @@ func BenchmarkVectorOperations(b *testing.B) {
 				TotalCount: 1,
 			}
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
+			_ = json.NewEncoder(w).Encode(response)
 		}
 	}))
 	defer server.Close()
@@ -162,7 +162,7 @@ func BenchmarkMemoryOperations(b *testing.B) {
 				Status:   "stored",
 			}
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
+			_ = json.NewEncoder(w).Encode(response)
 		case "/api/v1/public/memory/simple/search":
 			// Search response
 			response := SearchMemoryResponse{
@@ -172,7 +172,7 @@ func BenchmarkMemoryOperations(b *testing.B) {
 				Count: 1,
 			}
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
+			_ = json.NewEncoder(w).Encode(response)
 		}
 	}))
 	defer server.Close()
@@ -214,8 +214,8 @@ func BenchmarkMemoryOperations(b *testing.B) {
 func BenchmarkAgentSwarmOperations(b *testing.B) {
 	// Setup mock server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch {
-		case r.URL.Path == "/api/v1/agent-swarm/swarms":
+		switch r.URL.Path {
+		case "/api/v1/agent-swarm/swarms":
 			// Start swarm response
 			response := AgentSwarm{
 				ID:        "bench_swarm_123",
@@ -231,8 +231,8 @@ func BenchmarkAgentSwarmOperations(b *testing.B) {
 				},
 			}
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
-		case r.URL.Path == "/api/v1/agent-swarm/orchestrate":
+			_ = json.NewEncoder(w).Encode(response)
+		case "/api/v1/agent-swarm/orchestrate":
 			// Orchestrate response
 			response := OrchestrationResponse{
 				TaskID:     "bench_task_123",
@@ -240,7 +240,7 @@ func BenchmarkAgentSwarmOperations(b *testing.B) {
 				AssignedTo: []string{"agent_1"},
 			}
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
+			_ = json.NewEncoder(w).Encode(response)
 		}
 	}))
 	defer server.Close()
@@ -306,7 +306,7 @@ func BenchmarkAuthOperations(b *testing.B) {
 				Role:  "user",
 			}
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(response)
+			_ = json.NewEncoder(w).Encode(response)
 		case "/api/v1/auth/api-keys":
 			if r.Method == "GET" {
 				// List API keys response
@@ -323,7 +323,7 @@ func BenchmarkAuthOperations(b *testing.B) {
 					},
 				}
 				w.Header().Set("Content-Type", "application/json")
-				json.NewEncoder(w).Encode(response)
+				_ = json.NewEncoder(w).Encode(response)
 			} else {
 				// Create API key response
 				response := CreateAPIKeyResponse{
@@ -333,7 +333,7 @@ func BenchmarkAuthOperations(b *testing.B) {
 					Prefix: "ak_bench",
 				}
 				w.Header().Set("Content-Type", "application/json")
-				json.NewEncoder(w).Encode(response)
+				_ = json.NewEncoder(w).Encode(response)
 			}
 		}
 	}))
@@ -394,7 +394,7 @@ func BenchmarkConcurrentOperations(b *testing.B) {
 			Status: ProjectStatusActive,
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -430,7 +430,7 @@ func BenchmarkLargePayloads(b *testing.B) {
 			TotalTimeMs:  50.0,
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -508,7 +508,7 @@ func BenchmarkMemoryAllocations(b *testing.B) {
 			Status: ProjectStatusActive,
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 

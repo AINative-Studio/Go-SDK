@@ -50,7 +50,7 @@ func TestAgentSwarmService_Start(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -100,17 +100,17 @@ func TestAgentSwarmService_Get(t *testing.T) {
 			ProjectID: "proj_123",
 			Status:    SwarmStatusRunning,
 			Metrics: &SwarmMetrics{
-				TasksCompleted:   5,
-				TasksInProgress:  2,
-				TasksFailed:      1,
-				Efficiency:       0.85,
-				AverageTaskTime:  30 * time.Second,
+				TasksCompleted:     5,
+				TasksInProgress:    2,
+				TasksFailed:        1,
+				Efficiency:         0.85,
+				AverageTaskTime:    30 * time.Second,
 				TotalExecutionTime: 5 * time.Minute,
 			},
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -156,7 +156,7 @@ func TestAgentSwarmService_List(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -200,7 +200,7 @@ func TestAgentSwarmService_Orchestrate(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -236,11 +236,11 @@ func TestAgentSwarmService_GetTask(t *testing.T) {
 
 		now := time.Now()
 		response := OrchestrationTask{
-			ID:        "task_123",
-			SwarmID:   "swarm_123",
-			Status:    TaskStatusCompleted,
-			CreatedAt: now.Add(-10 * time.Minute),
-			StartedAt: &[]time.Time{now.Add(-8 * time.Minute)}[0],
+			ID:          "task_123",
+			SwarmID:     "swarm_123",
+			Status:      TaskStatusCompleted,
+			CreatedAt:   now.Add(-10 * time.Minute),
+			StartedAt:   &[]time.Time{now.Add(-8 * time.Minute)}[0],
 			CompletedAt: &now,
 			Result: map[string]interface{}{
 				"status":  "success",
@@ -249,7 +249,7 @@ func TestAgentSwarmService_GetTask(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -283,7 +283,7 @@ func TestAgentSwarmService_ListAgentTypes(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -316,14 +316,14 @@ func TestAgentSwarmService_GetSwarmMetrics(t *testing.T) {
 			AverageTaskTime:    45 * time.Second,
 			TotalExecutionTime: 15 * time.Minute,
 			ResourceUsage: &ResourceUsage{
-				CPUUsage:          0.65,
-				MemoryUsage:       2 * 1024 * 1024 * 1024, // 2GB
-				APICallsCounter:   150,
+				CPUUsage:        0.65,
+				MemoryUsage:     2 * 1024 * 1024 * 1024, // 2GB
+				APICallsCounter: 150,
 			},
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -350,7 +350,7 @@ func TestAgentSwarmService_Pause(t *testing.T) {
 		assert.Equal(t, "POST", r.Method)
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status": "paused"}`))
+		_, _ = w.Write([]byte(`{"status": "paused"}`))
 	}))
 	defer server.Close()
 
@@ -372,7 +372,7 @@ func TestAgentSwarmService_Resume(t *testing.T) {
 		assert.Equal(t, "POST", r.Method)
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status": "running"}`))
+		_, _ = w.Write([]byte(`{"status": "running"}`))
 	}))
 	defer server.Close()
 
@@ -394,7 +394,7 @@ func TestAgentSwarmService_Stop(t *testing.T) {
 		assert.Equal(t, "POST", r.Method)
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status": "stopped"}`))
+		_, _ = w.Write([]byte(`{"status": "stopped"}`))
 	}))
 	defer server.Close()
 

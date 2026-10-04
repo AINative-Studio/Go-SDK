@@ -49,15 +49,15 @@ type SubmitFeedbackResponse struct {
 
 // PerformanceMetrics represents performance metrics for an agent
 type PerformanceMetrics struct {
-	AgentID              string    `json:"agent_id"`
-	AverageRating        float64   `json:"avg_rating"`
-	TotalInteractions    int       `json:"total_interactions"`
-	SuccessfulTasks      int       `json:"successful_tasks"`
-	FailedTasks          int       `json:"failed_tasks"`
-	SuccessRate          float64   `json:"success_rate"` // 0.0 to 1.0
-	AverageResponseTime  float64   `json:"avg_response_time_ms"`
+	AgentID               string    `json:"agent_id"`
+	AverageRating         float64   `json:"avg_rating"`
+	TotalInteractions     int       `json:"total_interactions"`
+	SuccessfulTasks       int       `json:"successful_tasks"`
+	FailedTasks           int       `json:"failed_tasks"`
+	SuccessRate           float64   `json:"success_rate"` // 0.0 to 1.0
+	AverageResponseTime   float64   `json:"avg_response_time_ms"`
 	AverageCompletionTime float64   `json:"avg_completion_time_ms"`
-	LastUpdated          time.Time `json:"last_updated"`
+	LastUpdated           time.Time `json:"last_updated"`
 }
 
 // GetPerformanceMetricsRequest represents a request for performance metrics
@@ -75,25 +75,25 @@ type GetPerformanceMetricsResponse struct {
 
 // AgentComparison represents comparison data between agents
 type AgentComparison struct {
-	AgentID  string             `json:"agent_id"`
-	Metrics  PerformanceMetrics `json:"metrics"`
-	Ranking  int                `json:"ranking"`
-	Score    float64            `json:"score"`
+	AgentID string             `json:"agent_id"`
+	Metrics PerformanceMetrics `json:"metrics"`
+	Ranking int                `json:"ranking"`
+	Score   float64            `json:"score"`
 }
 
 // CompareAgentsRequest represents a request to compare multiple agents
 type CompareAgentsRequest struct {
-	Agents     []string `json:"agents"`
-	Metric     string   `json:"metric,omitempty"` // success_rate, avg_rating, response_time
-	Period     string   `json:"period,omitempty"` // 24h, 7d, 30d
+	Agents []string `json:"agents"`
+	Metric string   `json:"metric,omitempty"` // success_rate, avg_rating, response_time
+	Period string   `json:"period,omitempty"` // 24h, 7d, 30d
 }
 
 // CompareAgentsResponse represents the response from agent comparison
 type CompareAgentsResponse struct {
-	Comparisons   []AgentComparison      `json:"comparisons"`
-	Metric        string                 `json:"metric"`
-	Summary       map[string]interface{} `json:"summary,omitempty"`
-	Timestamp     time.Time              `json:"timestamp"`
+	Comparisons []AgentComparison      `json:"comparisons"`
+	Metric      string                 `json:"metric"`
+	Summary     map[string]interface{} `json:"summary,omitempty"`
+	Timestamp   time.Time              `json:"timestamp"`
 }
 
 // SubmitFeedback submits feedback for an agent interaction

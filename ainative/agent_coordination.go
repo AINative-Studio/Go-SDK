@@ -88,10 +88,10 @@ type GetWorkloadStatsRequest struct {
 
 // GetWorkloadStatsResponse represents workload statistics across agents
 type GetWorkloadStatsResponse struct {
-	Workloads     []AgentWorkload `json:"workloads"`
-	TotalTasks    int             `json:"total_tasks"`
-	AverageLoad   float64         `json:"average_load"`
-	Timestamp     time.Time       `json:"timestamp"`
+	Workloads   []AgentWorkload `json:"workloads"`
+	TotalTasks  int             `json:"total_tasks"`
+	AverageLoad float64         `json:"average_load"`
+	Timestamp   time.Time       `json:"timestamp"`
 }
 
 // SendMessage sends a message from one agent to another
@@ -149,15 +149,11 @@ func (s *AgentCoordinationService) DistributeTasks(ctx context.Context, req *Dis
 
 // GetWorkloadStats retrieves workload statistics for agents
 func (s *AgentCoordinationService) GetWorkloadStats(ctx context.Context, req *GetWorkloadStatsRequest) (*GetWorkloadStatsResponse, error) {
-	if req == nil {
-		req = &GetWorkloadStatsRequest{}
-	}
-
 	path := "/api/v1/agent-coordination/workload"
 
-	// Note: agent_ids filtering would be handled by the API server
-	// For now, we send the request without query parameters
-	// and let the server return all workload stats
+	// Note: req (including any AgentIDs filter) is accepted for API
+	// compatibility but not yet forwarded as a query parameter — the
+	// server currently returns all workload stats regardless.
 
 	var result GetWorkloadStatsResponse
 

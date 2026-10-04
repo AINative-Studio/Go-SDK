@@ -48,13 +48,13 @@ type EmbedAndStoreRequest struct {
 
 // EmbedAndStoreResponse represents the response from embed and store operation
 type EmbedAndStoreResponse struct {
-	Success              bool    `json:"success"`
-	VectorsStored        int     `json:"vectors_stored"`
-	EmbeddingsGenerated  int     `json:"embeddings_generated"`
-	Model                string  `json:"model"`
-	Dimensions           int     `json:"dimensions"`
-	Namespace            string  `json:"namespace"`
-	ProcessingTimeMs     float64 `json:"processing_time_ms"`
+	Success             bool    `json:"success"`
+	VectorsStored       int     `json:"vectors_stored"`
+	EmbeddingsGenerated int     `json:"embeddings_generated"`
+	Model               string  `json:"model"`
+	Dimensions          int     `json:"dimensions"`
+	Namespace           string  `json:"namespace"`
+	ProcessingTimeMs    float64 `json:"processing_time_ms"`
 }
 
 // SemanticSearchRequest represents a request for semantic search

@@ -150,7 +150,7 @@ func TestClientMakeRequest(t *testing.T) {
 		// Return test response
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"message": "success", "data": {"id": "123"}}`))
+		_, _ = w.Write([]byte(`{"message": "success", "data": {"id": "123"}}`))
 	}))
 	defer server.Close()
 
@@ -176,7 +176,7 @@ func TestClientMakeRequestWithError(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("X-Request-ID", "req-123")
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"message": "Invalid request", "code": "INVALID_REQUEST"}`))
+		_, _ = w.Write([]byte(`{"message": "Invalid request", "code": "INVALID_REQUEST"}`))
 	}))
 	defer server.Close()
 
@@ -207,7 +207,7 @@ func TestClientHealth(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"status": "healthy",
 			"version": "1.0.0",
 			"timestamp": "2025-01-01T00:00:00Z",
@@ -248,7 +248,7 @@ func TestClientRetryConfiguration(t *testing.T) {
 		// Return success on third attempt
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status": "success"}`))
+		_, _ = w.Write([]byte(`{"status": "success"}`))
 	}))
 	defer server.Close()
 
@@ -260,7 +260,7 @@ func TestClientRetryConfiguration(t *testing.T) {
 			InitialDelay:      10 * time.Millisecond,
 			MaxDelay:          100 * time.Millisecond,
 			BackoffMultiplier: 2.0,
-			Jitter:           false,
+			Jitter:            false,
 		},
 	})
 	require.NoError(t, err)
@@ -278,7 +278,7 @@ func TestClientRateLimit(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status": "success"}`))
+		_, _ = w.Write([]byte(`{"status": "success"}`))
 	}))
 	defer server.Close()
 

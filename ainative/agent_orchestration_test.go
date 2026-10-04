@@ -44,7 +44,7 @@ func TestAgentOrchestrationService_CreateTask(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -111,7 +111,7 @@ func TestAgentOrchestrationService_ListTasks(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -156,7 +156,7 @@ func TestAgentOrchestrationService_GetTaskStatus(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -199,7 +199,7 @@ func TestAgentOrchestrationService_ExecuteTask(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusAccepted)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -213,7 +213,7 @@ func TestAgentOrchestrationService_ExecuteTask(t *testing.T) {
 	req := &ExecuteTaskRequest{
 		TaskID: "task_123",
 		Params: map[string]interface{}{
-			"timeout":    300,
+			"timeout":     300,
 			"max_retries": 3,
 		},
 	}
@@ -252,7 +252,7 @@ func TestAgentOrchestrationService_CreateTaskSequence(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 

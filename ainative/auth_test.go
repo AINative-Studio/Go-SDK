@@ -34,7 +34,7 @@ func TestAuthService_Login(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -79,7 +79,7 @@ func TestAuthService_RefreshToken(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -120,7 +120,7 @@ func TestAuthService_GetUserInfo(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -173,7 +173,7 @@ func TestAuthService_ListAPIKeys(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -214,7 +214,7 @@ func TestAuthService_CreateAPIKey(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -282,7 +282,7 @@ func TestAuthService_GetAPIKeyInfo(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -321,7 +321,7 @@ func TestAuthService_ValidateToken(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -346,7 +346,7 @@ func TestAuthService_Logout(t *testing.T) {
 		assert.Equal(t, "POST", r.Method)
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status": "logged out"}`))
+		_, _ = w.Write([]byte(`{"status": "logged out"}`))
 	}))
 	defer server.Close()
 
@@ -444,7 +444,7 @@ func TestGenerateAPIKey(t *testing.T) {
 func TestParseToken(t *testing.T) {
 	// This is a test JWT token (not signed properly, just for parsing test)
 	testToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlcl8xMjMiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciIsImV4cCI6MTcwNjcyNDAwMH0.fake_signature"
-	
+
 	claims, err := ParseToken(testToken)
 	assert.NoError(t, err)
 	assert.NotNil(t, claims)
@@ -456,7 +456,7 @@ func TestParseToken(t *testing.T) {
 func TestIsTokenExpired(t *testing.T) {
 	// Test with expired token (exp: 1706724000 = 2024-01-31)
 	expiredToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlcl8xMjMiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciIsImV4cCI6MTcwNjcyNDAwMH0.fake_signature"
-	
+
 	expired, err := IsTokenExpired(expiredToken)
 	assert.NoError(t, err)
 	assert.True(t, expired)
@@ -469,7 +469,7 @@ func TestIsTokenExpired(t *testing.T) {
 func TestGetTokenExpirationTime(t *testing.T) {
 	// Test with token that has expiration
 	tokenWithExp := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlcl8xMjMiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciIsImV4cCI6MTcwNjcyNDAwMH0.fake_signature"
-	
+
 	expTime, err := GetTokenExpirationTime(tokenWithExp)
 	assert.NoError(t, err)
 	assert.NotNil(t, expTime)

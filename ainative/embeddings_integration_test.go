@@ -239,8 +239,8 @@ func TestIntegration_GetUsage(t *testing.T) {
 	assert.NotEmpty(t, usage.UserID)
 	assert.GreaterOrEqual(t, usage.EmbeddingsGeneratedToday, 0)
 	assert.GreaterOrEqual(t, usage.EmbeddingsGeneratedMonth, 0)
-	assert.Equal(t, 0.0, usage.CostTodayUSD)   // Should be free
-	assert.Equal(t, 0.0, usage.CostMonthUSD)   // Should be free
+	assert.Equal(t, 0.0, usage.CostTodayUSD) // Should be free
+	assert.Equal(t, 0.0, usage.CostMonthUSD) // Should be free
 
 	t.Logf("User: %s", usage.UserID)
 	t.Logf("Embeddings today: %d", usage.EmbeddingsGeneratedToday)

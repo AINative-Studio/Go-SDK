@@ -20,17 +20,17 @@ func NewAgentSwarmService(client *Client) *AgentSwarmService {
 
 // AgentSwarm represents an agent swarm
 type AgentSwarm struct {
-	ID          string                 `json:"id"`
-	ProjectID   string                 `json:"project_id"`
-	Name        string                 `json:"name"`
-	Objective   string                 `json:"objective"`
-	Status      SwarmStatus            `json:"status"`
-	Agents      []Agent                `json:"agents"`
-	Metrics     *SwarmMetrics          `json:"metrics,omitempty"`
-	Config      *SwarmConfig           `json:"config,omitempty"`
-	CreatedAt   time.Time              `json:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at"`
-	CompletedAt *time.Time             `json:"completed_at,omitempty"`
+	ID          string        `json:"id"`
+	ProjectID   string        `json:"project_id"`
+	Name        string        `json:"name"`
+	Objective   string        `json:"objective"`
+	Status      SwarmStatus   `json:"status"`
+	Agents      []Agent       `json:"agents"`
+	Metrics     *SwarmMetrics `json:"metrics,omitempty"`
+	Config      *SwarmConfig  `json:"config,omitempty"`
+	CreatedAt   time.Time     `json:"created_at"`
+	UpdatedAt   time.Time     `json:"updated_at"`
+	CompletedAt *time.Time    `json:"completed_at,omitempty"`
 }
 
 // SwarmStatus represents the status of a swarm
@@ -47,14 +47,14 @@ const (
 
 // Agent represents an individual agent in a swarm
 type Agent struct {
-	ID          string                 `json:"id"`
-	Type        AgentType              `json:"type"`
-	Status      AgentStatus            `json:"status"`
-	Capabilities []string              `json:"capabilities"`
-	Config      map[string]interface{} `json:"config,omitempty"`
-	Metrics     *AgentMetrics          `json:"metrics,omitempty"`
-	CreatedAt   time.Time              `json:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at"`
+	ID           string                 `json:"id"`
+	Type         AgentType              `json:"type"`
+	Status       AgentStatus            `json:"status"`
+	Capabilities []string               `json:"capabilities"`
+	Config       map[string]interface{} `json:"config,omitempty"`
+	Metrics      *AgentMetrics          `json:"metrics,omitempty"`
+	CreatedAt    time.Time              `json:"created_at"`
+	UpdatedAt    time.Time              `json:"updated_at"`
 }
 
 // AgentType represents different types of agents
@@ -85,13 +85,13 @@ const (
 
 // SwarmMetrics represents performance metrics for a swarm
 type SwarmMetrics struct {
-	TasksCompleted    int           `json:"tasks_completed"`
-	TasksFailed       int           `json:"tasks_failed"`
-	TasksInProgress   int           `json:"tasks_in_progress"`
-	AverageTaskTime   time.Duration `json:"average_task_time"`
-	TotalExecutionTime time.Duration `json:"total_execution_time"`
-	Efficiency        float64       `json:"efficiency"`
-	ResourceUsage     *ResourceUsage `json:"resource_usage,omitempty"`
+	TasksCompleted     int            `json:"tasks_completed"`
+	TasksFailed        int            `json:"tasks_failed"`
+	TasksInProgress    int            `json:"tasks_in_progress"`
+	AverageTaskTime    time.Duration  `json:"average_task_time"`
+	TotalExecutionTime time.Duration  `json:"total_execution_time"`
+	Efficiency         float64        `json:"efficiency"`
+	ResourceUsage      *ResourceUsage `json:"resource_usage,omitempty"`
 }
 
 // AgentMetrics represents performance metrics for an individual agent
@@ -104,9 +104,9 @@ type AgentMetrics struct {
 
 // ResourceUsage represents resource consumption metrics
 type ResourceUsage struct {
-	CPUUsage    float64 `json:"cpu_usage"`
-	MemoryUsage int64   `json:"memory_usage_bytes"`
-	NetworkIO   int64   `json:"network_io_bytes"`
+	CPUUsage        float64 `json:"cpu_usage"`
+	MemoryUsage     int64   `json:"memory_usage_bytes"`
+	NetworkIO       int64   `json:"network_io_bytes"`
 	APICallsCounter int     `json:"api_calls_count"`
 }
 
@@ -121,8 +121,8 @@ type SwarmConfig struct {
 
 // ResourceLimits represents resource limits for a swarm
 type ResourceLimits struct {
-	MaxCPU    float64 `json:"max_cpu"`
-	MaxMemory int64   `json:"max_memory_bytes"`
+	MaxCPU      float64 `json:"max_cpu"`
+	MaxMemory   int64   `json:"max_memory_bytes"`
 	MaxAPICalls int     `json:"max_api_calls"`
 }
 
@@ -190,29 +190,29 @@ const (
 type TaskStatus string
 
 const (
-	TaskStatusPending    TaskStatus = "pending"
-	TaskStatusAssigned   TaskStatus = "assigned"
-	TaskStatusRunning    TaskStatus = "running"
-	TaskStatusCompleted  TaskStatus = "completed"
-	TaskStatusFailed     TaskStatus = "failed"
-	TaskStatusCancelled  TaskStatus = "cancelled"
+	TaskStatusPending   TaskStatus = "pending"
+	TaskStatusAssigned  TaskStatus = "assigned"
+	TaskStatusRunning   TaskStatus = "running"
+	TaskStatusCompleted TaskStatus = "completed"
+	TaskStatusFailed    TaskStatus = "failed"
+	TaskStatusCancelled TaskStatus = "cancelled"
 )
 
 // OrchestrationRequest represents a request to orchestrate agents
 type OrchestrationRequest struct {
-	SwarmID     string                 `json:"swarm_id"`
-	Task        string                 `json:"task"`
-	Context     map[string]interface{} `json:"context,omitempty"`
-	Priority    TaskPriority           `json:"priority,omitempty"`
-	AgentIDs    []string               `json:"agent_ids,omitempty"`
+	SwarmID  string                 `json:"swarm_id"`
+	Task     string                 `json:"task"`
+	Context  map[string]interface{} `json:"context,omitempty"`
+	Priority TaskPriority           `json:"priority,omitempty"`
+	AgentIDs []string               `json:"agent_ids,omitempty"`
 }
 
 // OrchestrationResponse represents a response from agent orchestration
 type OrchestrationResponse struct {
-	TaskID      string                 `json:"task_id"`
-	Status      TaskStatus             `json:"status"`
-	AssignedTo  []string               `json:"assigned_to"`
-	EstimatedDuration time.Duration     `json:"estimated_duration,omitempty"`
+	TaskID            string        `json:"task_id"`
+	Status            TaskStatus    `json:"status"`
+	AssignedTo        []string      `json:"assigned_to"`
+	EstimatedDuration time.Duration `json:"estimated_duration,omitempty"`
 }
 
 // Start starts a new agent swarm
@@ -220,26 +220,26 @@ func (s *AgentSwarmService) Start(ctx context.Context, req *StartSwarmRequest) (
 	if req == nil {
 		return nil, NewValidationError("request", "request cannot be nil", nil)
 	}
-	
+
 	if req.ProjectID == "" {
 		return nil, NewValidationError("project_id", "project ID is required", req.ProjectID)
 	}
-	
+
 	if req.Objective == "" {
 		return nil, NewValidationError("objective", "objective is required", req.Objective)
 	}
-	
+
 	if len(req.Agents) == 0 {
 		return nil, NewValidationError("agents", "at least one agent configuration is required", req.Agents)
 	}
-	
+
 	var result AgentSwarm
-	
+
 	err := s.client.makeRequest(ctx, "POST", "/api/v1/agent-swarm/swarms", req, &result)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &result, nil
 }
 
@@ -248,16 +248,16 @@ func (s *AgentSwarmService) Get(ctx context.Context, swarmID string) (*AgentSwar
 	if swarmID == "" {
 		return nil, NewValidationError("swarm_id", "swarm ID is required", swarmID)
 	}
-	
+
 	var result AgentSwarm
-	
+
 	path := fmt.Sprintf("/api/v1/agent-swarm/swarms/%s", swarmID)
-	
+
 	err := s.client.makeRequest(ctx, "GET", path, nil, &result)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &result, nil
 }
 
@@ -266,28 +266,28 @@ func (s *AgentSwarmService) List(ctx context.Context, req *ListSwarmsRequest) (*
 	if req == nil {
 		req = &ListSwarmsRequest{}
 	}
-	
+
 	if req.Limit == 0 {
 		req.Limit = 10
 	}
-	
+
 	path := fmt.Sprintf("/api/v1/agent-swarm/swarms?limit=%d&offset=%d", req.Limit, req.Offset)
-	
+
 	if req.ProjectID != "" {
 		path += fmt.Sprintf("&project_id=%s", req.ProjectID)
 	}
-	
+
 	if req.Status != "" {
 		path += fmt.Sprintf("&status=%s", req.Status)
 	}
-	
+
 	var result ListSwarmsResponse
-	
+
 	err := s.client.makeRequest(ctx, "GET", path, nil, &result)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &result, nil
 }
 
@@ -296,9 +296,9 @@ func (s *AgentSwarmService) Stop(ctx context.Context, swarmID string) error {
 	if swarmID == "" {
 		return NewValidationError("swarm_id", "swarm ID is required", swarmID)
 	}
-	
+
 	path := fmt.Sprintf("/api/v1/agent-swarm/swarms/%s/stop", swarmID)
-	
+
 	return s.client.makeRequest(ctx, "POST", path, nil, nil)
 }
 
@@ -307,9 +307,9 @@ func (s *AgentSwarmService) Pause(ctx context.Context, swarmID string) error {
 	if swarmID == "" {
 		return NewValidationError("swarm_id", "swarm ID is required", swarmID)
 	}
-	
+
 	path := fmt.Sprintf("/api/v1/agent-swarm/swarms/%s/pause", swarmID)
-	
+
 	return s.client.makeRequest(ctx, "POST", path, nil, nil)
 }
 
@@ -318,9 +318,9 @@ func (s *AgentSwarmService) Resume(ctx context.Context, swarmID string) error {
 	if swarmID == "" {
 		return NewValidationError("swarm_id", "swarm ID is required", swarmID)
 	}
-	
+
 	path := fmt.Sprintf("/api/v1/agent-swarm/swarms/%s/resume", swarmID)
-	
+
 	return s.client.makeRequest(ctx, "POST", path, nil, nil)
 }
 
@@ -329,26 +329,26 @@ func (s *AgentSwarmService) Orchestrate(ctx context.Context, req *OrchestrationR
 	if req == nil {
 		return nil, NewValidationError("request", "request cannot be nil", nil)
 	}
-	
+
 	if req.SwarmID == "" {
 		return nil, NewValidationError("swarm_id", "swarm ID is required", req.SwarmID)
 	}
-	
+
 	if req.Task == "" {
 		return nil, NewValidationError("task", "task is required", req.Task)
 	}
-	
+
 	if req.Priority == "" {
 		req.Priority = TaskPriorityMedium
 	}
-	
+
 	var result OrchestrationResponse
-	
+
 	err := s.client.makeRequest(ctx, "POST", "/api/v1/agent-swarm/orchestrate", req, &result)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &result, nil
 }
 
@@ -357,16 +357,16 @@ func (s *AgentSwarmService) GetTask(ctx context.Context, taskID string) (*Orches
 	if taskID == "" {
 		return nil, NewValidationError("task_id", "task ID is required", taskID)
 	}
-	
+
 	var result OrchestrationTask
-	
+
 	path := fmt.Sprintf("/api/v1/agent-swarm/tasks/%s", taskID)
-	
+
 	err := s.client.makeRequest(ctx, "GET", path, nil, &result)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &result, nil
 }
 
@@ -375,12 +375,12 @@ func (s *AgentSwarmService) ListAgentTypes(ctx context.Context) ([]AgentType, er
 	var result struct {
 		AgentTypes []AgentType `json:"agent_types"`
 	}
-	
+
 	err := s.client.makeRequest(ctx, "GET", "/api/v1/agent-swarm/agent-types", nil, &result)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return result.AgentTypes, nil
 }
 
@@ -389,15 +389,15 @@ func (s *AgentSwarmService) GetSwarmMetrics(ctx context.Context, swarmID string)
 	if swarmID == "" {
 		return nil, NewValidationError("swarm_id", "swarm ID is required", swarmID)
 	}
-	
+
 	var result SwarmMetrics
-	
+
 	path := fmt.Sprintf("/api/v1/agent-swarm/swarms/%s/metrics", swarmID)
-	
+
 	err := s.client.makeRequest(ctx, "GET", path, nil, &result)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &result, nil
 }

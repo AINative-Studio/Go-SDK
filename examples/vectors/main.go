@@ -228,7 +228,6 @@ type searchResult struct {
 }
 
 func generateSampleVectors(count, dimensions int) [][]float64 {
-	rand.Seed(time.Now().UnixNano())
 	vectors := make([][]float64, count)
 
 	for i := range vectors {

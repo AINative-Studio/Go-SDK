@@ -16,11 +16,11 @@ import (
 
 var (
 	// Global flags
-	apiKey      string
-	apiSecret   string
-	baseURL     string
-	orgID       string
-	verbose     bool
+	apiKey       string
+	apiSecret    string
+	baseURL      string
+	orgID        string
+	verbose      bool
 	outputFormat string
 
 	// Version information

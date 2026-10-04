@@ -24,7 +24,7 @@ type Task struct {
 	AgentID     string                 `json:"agent_id"`
 	TaskType    string                 `json:"task_type"`
 	Description string                 `json:"description"`
-	Status      string                 `json:"status"` // pending, running, completed, failed
+	Status      string                 `json:"status"`             // pending, running, completed, failed
 	Priority    string                 `json:"priority,omitempty"` // low, medium, high, critical
 	Context     map[string]interface{} `json:"context,omitempty"`
 	Result      interface{}            `json:"result,omitempty"`

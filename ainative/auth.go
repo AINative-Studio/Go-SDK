@@ -75,13 +75,13 @@ type CreateAPIKeyResponse struct {
 
 // UserInfo represents user information
 type UserInfo struct {
-	ID           string    `json:"id"`
-	Email        string    `json:"email"`
-	Name         string    `json:"name"`
-	Organization string    `json:"organization,omitempty"`
-	Role         string    `json:"role"`
-	IsActive     bool      `json:"is_active"`
-	CreatedAt    time.Time `json:"created_at"`
+	ID           string     `json:"id"`
+	Email        string     `json:"email"`
+	Name         string     `json:"name"`
+	Organization string     `json:"organization,omitempty"`
+	Role         string     `json:"role"`
+	IsActive     bool       `json:"is_active"`
+	CreatedAt    time.Time  `json:"created_at"`
 	LastLoginAt  *time.Time `json:"last_login_at,omitempty"`
 }
 
@@ -290,7 +290,7 @@ func IsTokenExpired(tokenString string) (bool, error) {
 		return false, nil // No expiration
 	}
 
-	return claims.ExpiresAt.Time.Before(time.Now()), nil
+	return claims.ExpiresAt.Before(time.Now()), nil
 }
 
 // GetTokenExpirationTime gets the expiration time of a token

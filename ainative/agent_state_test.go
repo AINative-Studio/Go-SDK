@@ -31,7 +31,7 @@ func TestAgentStateService_GetState(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -80,7 +80,7 @@ func TestAgentStateService_CreateCheckpoint(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -96,7 +96,7 @@ func TestAgentStateService_CreateCheckpoint(t *testing.T) {
 		Name:        "checkpoint_before_deploy",
 		Description: "State before production deployment",
 		Data: map[string]interface{}{
-			"task_queue":   []string{"task1", "task2"},
+			"task_queue": []string{"task1", "task2"},
 			"configuration": map[string]interface{}{
 				"timeout": 300,
 			},
@@ -127,7 +127,7 @@ func TestAgentStateService_RestoreCheckpoint(t *testing.T) {
 			AgentID: "agent_123",
 			Version: 5,
 			State: map[string]interface{}{
-				"task_queue":   []string{"task1", "task2"},
+				"task_queue": []string{"task1", "task2"},
 				"configuration": map[string]interface{}{
 					"timeout": 300,
 				},
@@ -137,7 +137,7 @@ func TestAgentStateService_RestoreCheckpoint(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -202,7 +202,7 @@ func TestAgentStateService_ListCheckpoints(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
