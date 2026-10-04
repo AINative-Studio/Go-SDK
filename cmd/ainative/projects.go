@@ -26,7 +26,7 @@ var projectsListCmd = &cobra.Command{
 		}
 
 		ctx := context.Background()
-		projects, err := client.ZeroDB.Projects.List(ctx)
+		projects, err := client.ZeroDB.Projects.List(ctx, nil)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error listing projects: %v\n", err)
 			os.Exit(1)
@@ -51,7 +51,7 @@ var projectsCreateCmd = &cobra.Command{
 		description, _ := cmd.Flags().GetString("description")
 
 		ctx := context.Background()
-		project, err := client.ZeroDB.Projects.Create(ctx, &ainative.ProjectCreateRequest{
+		project, err := client.ZeroDB.Projects.Create(ctx, &ainative.CreateProjectRequest{
 			Name:        name,
 			Description: description,
 		})

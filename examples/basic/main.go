@@ -57,7 +57,7 @@ func main() {
 	} else {
 		fmt.Printf("✅ Found %d projects:\n", len(projects.Projects))
 		for i, project := range projects.Projects {
-			fmt.Printf("   %d. %s (ID: %s, Status: %s)\n", 
+			fmt.Printf("   %d. %s (ID: %s, Status: %s)\n",
 				i+1, project.Name, project.ID, project.Status)
 			if project.Description != "" {
 				fmt.Printf("      Description: %s\n", project.Description)
@@ -80,42 +80,31 @@ func main() {
 		log.Printf("Failed to create project: %v", err)
 	} else {
 		fmt.Printf("✅ Created project: %s (ID: %s)\n", newProject.Name, newProject.ID)
-		
+
 		// Use this project for the rest of the examples
 		projectID := newProject.ID
-		
+
 		// Example 5: Create Memory
 		fmt.Println("\n🧠 Creating Memory...")
 		memory, err := client.ZeroDB.Memory.Create(ctx, &ainative.CreateMemoryRequest{
-			Content:  "This is a test memory created from the Go SDK example",
-			Title:    "Go SDK Test Memory",
-			Tags:     []string{"go", "sdk", "test"},
-			Priority: ainative.MemoryPriorityMedium,
-			Metadata: map[string]interface{}{
-				"project_id": projectID,
-				"example":    "basic",
-			},
+			Content: fmt.Sprintf("This is a test memory created from the Go SDK example (project: %s)", projectID),
+			Tags:    []string{"go", "sdk", "test"},
 		})
 		if err != nil {
 			log.Printf("Failed to create memory: %v", err)
 		} else {
-			fmt.Printf("✅ Created memory: %s (ID: %s)\n", memory.Title, memory.ID)
+			fmt.Printf("✅ Created memory (ID: %s, status: %s)\n", memory.MemoryID, memory.Status)
 		}
 
 		// Example 6: Search Memory
 		fmt.Println("\n🔍 Searching Memory...")
-		searchResults, err := client.ZeroDB.Memory.Search(ctx, &ainative.SearchMemoryRequest{
-			Query:    "test memory",
-			Limit:    5,
-			Semantic: true,
-		})
+		searchResults, err := client.ZeroDB.Memory.Search(ctx, "test memory", 5)
 		if err != nil {
 			log.Printf("Failed to search memory: %v", err)
 		} else {
 			fmt.Printf("✅ Found %d memory items:\n", len(searchResults.Results))
 			for i, item := range searchResults.Results {
-				fmt.Printf("   %d. %s (Priority: %s)\n", i+1, item.Title, item.Priority)
-				fmt.Printf("      Tags: %v\n", item.Tags)
+				fmt.Printf("   %d. %s\n", i+1, item.Content)
 			}
 		}
 
@@ -128,13 +117,13 @@ func main() {
 			fmt.Printf("✅ Available agent types: %v\n", agentTypes)
 		}
 
-		// Example 8: Clean up - Suspend the project
-		fmt.Println("\n🧹 Cleaning up - Suspending Project...")
-		err = client.ZeroDB.Projects.Suspend(ctx, projectID, "Example completed")
+		// Example 8: Clean up - Delete the project
+		fmt.Println("\n🧹 Cleaning up - Deleting Project...")
+		err = client.ZeroDB.Projects.Delete(ctx, projectID)
 		if err != nil {
-			log.Printf("Failed to suspend project: %v", err)
+			log.Printf("Failed to delete project: %v", err)
 		} else {
-			fmt.Printf("✅ Project suspended successfully\n")
+			fmt.Printf("✅ Project deleted successfully\n")
 		}
 	}
 

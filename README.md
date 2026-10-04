@@ -58,6 +58,8 @@ func main() {
 }
 ```
 
+> **Note on terminology:** this SDK's `Config.OrganizationID` / `--org-id` flag refers to what the AINative dashboard calls a **workspace**. "Organization" and "workspace" are the same concept — the API and this SDK use the former, the product UI and most docs use the latter.
+
 ### Vector Operations
 
 ```go

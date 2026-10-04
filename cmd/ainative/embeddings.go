@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 
-	"github.com/AINative-Studio/Go-SDK/ainative"
 	"github.com/spf13/cobra"
 )
 
@@ -32,11 +30,7 @@ var embeddingsGenerateCmd = &cobra.Command{
 		normalize, _ := cmd.Flags().GetBool("normalize")
 
 		ctx := context.Background()
-		result, err := client.ZeroDB.Embeddings.Generate(ctx, &ainative.GenerateRequest{
-			Texts:     args,
-			Model:     model,
-			Normalize: normalize,
-		})
+		result, err := client.ZeroDB.Embeddings.Generate(ctx, args, model, normalize)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error generating embeddings: %v\n", err)
 			os.Exit(1)
@@ -74,13 +68,7 @@ var embeddingsSearchCmd = &cobra.Command{
 		}
 
 		ctx := context.Background()
-		result, err := client.ZeroDB.Embeddings.SemanticSearch(ctx, &ainative.SemanticSearchRequest{
-			ProjectID: projectID,
-			Query:     args[0],
-			Limit:     limit,
-			Threshold: threshold,
-			Namespace: namespace,
-		})
+		result, err := client.ZeroDB.Embeddings.SemanticSearch(ctx, projectID, args[0], limit, threshold, namespace, nil, "")
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error performing semantic search: %v\n", err)
 			os.Exit(1)
@@ -110,11 +98,12 @@ var embeddingsModelsCmd = &cobra.Command{
 
 		fmt.Println("Available Embedding Models:")
 		fmt.Println("===========================")
-		for _, model := range models.Models {
-			fmt.Printf("\n%s\n", model.Name)
+		for _, model := range models {
+			fmt.Printf("\n%s\n", model.ID)
 			fmt.Printf("  Dimensions: %d\n", model.Dimensions)
 			fmt.Printf("  Description: %s\n", model.Description)
-			fmt.Printf("  Context: %d tokens\n", model.MaxContextLength)
+			fmt.Printf("  Speed: %s\n", model.Speed)
+			fmt.Printf("  Loaded: %t\n", model.Loaded)
 		}
 	},
 }

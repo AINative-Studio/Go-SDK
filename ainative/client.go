@@ -17,16 +17,16 @@ import (
 const (
 	// DefaultBaseURL is the default AINative API base URL
 	DefaultBaseURL = "https://api.ainative.studio"
-	
+
 	// DefaultTimeout is the default HTTP timeout
 	DefaultTimeout = 30 * time.Second
-	
+
 	// DefaultMaxRetries is the default number of retry attempts
 	DefaultMaxRetries = 3
-	
+
 	// DefaultRateLimit is the default rate limit (requests per second)
 	DefaultRateLimit = 100
-	
+
 	// UserAgent is the SDK user agent string
 	UserAgent = "AINative-Go-SDK/1.0.0"
 )
@@ -35,58 +35,62 @@ const (
 type Client struct {
 	// HTTP client
 	httpClient *resty.Client
-	
+
 	// Configuration
 	config *Config
-	
+
 	// Rate limiter
 	rateLimiter *rate.Limiter
-	
+
 	// OpenTelemetry tracer
 	tracer trace.Tracer
-	
+
 	// API service clients
-	ZeroDB              *ZeroDBService
-	AgentSwarm          *AgentSwarmService
-	AgentOrchestration  *AgentOrchestrationService
-	AgentCoordination   *AgentCoordinationService
-	AgentLearning       *AgentLearningService
-	AgentState          *AgentStateService
-	Auth                *AuthService
+	ZeroDB             *ZeroDBService
+	AgentSwarm         *AgentSwarmService
+	AgentOrchestration *AgentOrchestrationService
+	AgentCoordination  *AgentCoordinationService
+	AgentLearning      *AgentLearningService
+	AgentState         *AgentStateService
+	Auth               *AuthService
 }
 
 // Config holds the configuration for the AINative client
 type Config struct {
 	// Required: API key for authentication
 	APIKey string
-	
+
 	// Optional: API secret for enhanced security
 	APISecret string
-	
+
 	// Optional: Base URL for the API (defaults to production)
 	BaseURL string
-	
-	// Optional: Organization ID for multi-tenant setups
+
+	// Optional: Organization ID for multi-tenant setups. This maps to
+	// what the AINative product and dashboard call a "workspace" — the
+	// backend API and this SDK use "organization"/OrgID, but you'll see
+	// "workspace" in the UI and in most docs (e.g. a project's
+	// max_workspaces limit). They're the same concept.
 	OrganizationID string
-	
+
 	// Optional: Project ID for project-scoped operations
 	ProjectID string
-	
+
 	// Optional: Custom HTTP client
 	HTTPClient *http.Client
-	
+
 	// Optional: Request timeout (defaults to 30s)
 	Timeout time.Duration
-	
+
 	// Optional: Retry configuration
 	RetryConfig *RetryConfig
-	
+
 	// Optional: Rate limit (requests per second)
 	RateLimit int
-	
+
 	// Optional: OpenTelemetry tracer
 	Tracer trace.Tracer
-	
+
 	// Optional: Debug mode
 	Debug bool
 }
@@ -95,16 +99,16 @@ type Config struct {
 type RetryConfig struct {
 	// Maximum number of retry attempts
 	MaxRetries int
-	
+
 	// Initial delay between retries
 	InitialDelay time.Duration
-	
+
 	// Maximum delay between retries
 	MaxDelay time.Duration
-	
+
 	// Backoff multiplier
 	BackoffMultiplier float64
-	
+
 	// Add jitter to prevent thundering herd
 	Jitter bool
 }
@@ -114,30 +118,30 @@ func NewClient(config *Config) (*Client, error) {
 	if config == nil {
 		return nil, fmt.Errorf("config cannot be nil")
 	}
-	
+
 	if config.APIKey == "" {
 		return nil, fmt.Errorf("API key is required")
 	}
-	
+
 	// Set defaults
 	if config.BaseURL == "" {
 		config.BaseURL = DefaultBaseURL
 	}
-	
+
 	if config.Timeout == 0 {
 		config.Timeout = DefaultTimeout
 	}
-	
+
 	if config.RateLimit == 0 {
 		config.RateLimit = DefaultRateLimit
 	}
-	
+
 	// Validate base URL
 	_, err := url.Parse(config.BaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("invalid base URL: %w", err)
 	}
-	
+
 	// Create HTTP client
 	var baseHTTPClient *http.Client
 	if config.HTTPClient != nil {
@@ -153,9 +157,9 @@ func NewClient(config *Config) (*Client, error) {
 			},
 		}
 	}
-	
+
 	httpClient := resty.NewWithClient(baseHTTPClient)
-	
+
 	// Configure client
 	httpClient.
 		SetBaseURL(config.BaseURL).
@@ -163,7 +167,7 @@ func NewClient(config *Config) (*Client, error) {
 		SetHeader("User-Agent", UserAgent).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json")
-	
+
 	// Set authentication header
 	if config.APISecret != "" {
 		// Use API key + secret for enhanced authentication
@@ -171,12 +175,12 @@ func NewClient(config *Config) (*Client, error) {
 	} else {
 		httpClient.SetHeader("Authorization", fmt.Sprintf("Bearer %s", config.APIKey))
 	}
-	
+
 	// Set organization header if provided
 	if config.OrganizationID != "" {
 		httpClient.SetHeader("X-Organization-ID", config.OrganizationID)
 	}
-	
+
 	// Configure retry
 	retryConfig := config.RetryConfig
 	if retryConfig == nil {
@@ -185,10 +189,10 @@ func NewClient(config *Config) (*Client, error) {
 			InitialDelay:      100 * time.Millisecond,
 			MaxDelay:          10 * time.Second,
 			BackoffMultiplier: 2.0,
-			Jitter:           true,
+			Jitter:            true,
 		}
 	}
-	
+
 	httpClient.
 		SetRetryCount(retryConfig.MaxRetries).
 		SetRetryWaitTime(retryConfig.InitialDelay).
@@ -198,25 +202,25 @@ func NewClient(config *Config) (*Client, error) {
 			if err != nil {
 				return true
 			}
-			
+
 			// Retry on 5xx errors and 429 (rate limit)
 			return r.StatusCode() >= 500 || r.StatusCode() == 429
 		})
-	
+
 	// Enable debug mode if requested
 	if config.Debug {
 		httpClient.SetDebug(true)
 	}
-	
+
 	// Create rate limiter
 	rateLimiter := rate.NewLimiter(rate.Limit(config.RateLimit), config.RateLimit)
-	
+
 	// Set up tracer
 	tracer := config.Tracer
 	if tracer == nil {
 		tracer = otel.Tracer("ainative-go-sdk")
 	}
-	
+
 	// Create client
 	client := &Client{
 		httpClient:  httpClient,
@@ -224,7 +228,7 @@ func NewClient(config *Config) (*Client, error) {
 		rateLimiter: rateLimiter,
 		tracer:      tracer,
 	}
-	
+
 	// Initialize service clients
 	client.ZeroDB = NewZeroDBService(client)
 	client.AgentSwarm = NewAgentSwarmService(client)
@@ -242,33 +246,33 @@ func (c *Client) makeRequest(ctx context.Context, method, path string, body inte
 	// Start tracing span
 	ctx, span := c.tracer.Start(ctx, fmt.Sprintf("ainative.%s %s", method, path))
 	defer span.End()
-	
+
 	// Apply rate limiting
 	if err := c.rateLimiter.Wait(ctx); err != nil {
 		return fmt.Errorf("rate limit wait failed: %w", err)
 	}
-	
+
 	// Create request
 	req := c.httpClient.R().SetContext(ctx)
-	
+
 	// Set body if provided
 	if body != nil {
 		req.SetBody(body)
 	}
-	
+
 	// Set result if provided
 	if result != nil {
 		req.SetResult(result)
 	}
-	
+
 	// Set error response handler
 	var apiError APIError
 	req.SetError(&apiError)
-	
+
 	// Make request
 	var resp *resty.Response
 	var err error
-	
+
 	switch strings.ToUpper(method) {
 	case "GET":
 		resp, err = req.Get(path)
@@ -283,19 +287,20 @@ func (c *Client) makeRequest(ctx context.Context, method, path string, body inte
 	default:
 		return fmt.Errorf("unsupported HTTP method: %s", method)
 	}
-	
+
 	// Handle network errors
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
 	}
-	
+
 	// Handle API errors
 	if resp.StatusCode() >= 400 {
 		if apiError.Message != "" {
 			apiError.StatusCode = resp.StatusCode()
+			apiError.RequestID = resp.Header().Get("X-Request-ID")
 			return &apiError
 		}
-		
+
 		// Fallback error
 		return &APIError{
 			StatusCode: resp.StatusCode(),
@@ -303,7 +308,7 @@ func (c *Client) makeRequest(ctx context.Context, method, path string, body inte
 			RequestID:  resp.Header().Get("X-Request-ID"),
 		}
 	}
-	
+
 	return nil
 }
 
@@ -322,7 +327,7 @@ func (c *Client) SetProjectID(projectID string) {
 	}
 }
 
-// SetOrganizationID sets the default organization ID for operations  
+// SetOrganizationID sets the default organization ID for operations
 func (c *Client) SetOrganizationID(orgID string) {
 	c.config.OrganizationID = orgID
 	if orgID != "" {
@@ -335,12 +340,12 @@ func (c *Client) SetOrganizationID(orgID string) {
 // Health checks the API health
 func (c *Client) Health(ctx context.Context) (*HealthResponse, error) {
 	var result HealthResponse
-	
+
 	err := c.makeRequest(ctx, "GET", "/health", nil, &result)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &result, nil
 }
 
@@ -350,4 +355,34 @@ type HealthResponse struct {
 	Version   string            `json:"version"`
 	Timestamp time.Time         `json:"timestamp"`
 	Services  map[string]string `json:"services"`
+}
+
+// NullableTime wraps time.Time to tolerate the live API's habit of returning
+// an empty string ("") rather than omitting the field or sending null for a
+// timestamp that hasn't happened yet (e.g. a project's updated_at before its
+// first update). A plain time.Time or *time.Time both fail to unmarshal ""
+// via the standard RFC3339 decoder. Refs #8393.
+type NullableTime struct {
+	time.Time
+	Valid bool
+}
+
+func (nt *NullableTime) UnmarshalJSON(data []byte) error {
+	s := strings.Trim(string(data), `"`)
+	if s == "" || s == "null" {
+		nt.Valid = false
+		return nil
+	}
+	if err := nt.Time.UnmarshalJSON(data); err != nil {
+		return err
+	}
+	nt.Valid = true
+	return nil
+}
+
+func (nt NullableTime) MarshalJSON() ([]byte, error) {
+	if !nt.Valid {
+		return []byte(`""`), nil
+	}
+	return nt.Time.MarshalJSON()
 }

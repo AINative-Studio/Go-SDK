@@ -15,7 +15,7 @@ import (
 func TestProjectsService_Create(t *testing.T) {
 	// Create test server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/api/v1/projects", r.URL.Path)
+		assert.Equal(t, "/api/v1/zerodb/projects", r.URL.Path)
 		assert.Equal(t, "POST", r.Method)
 		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 
@@ -27,13 +27,14 @@ func TestProjectsService_Create(t *testing.T) {
 		assert.Equal(t, "Test Description", req.Description)
 
 		// Return mock response
+		now := time.Now()
 		response := Project{
 			ID:          "proj_123",
 			Name:        req.Name,
 			Description: req.Description,
 			Status:      ProjectStatusActive,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			CreatedAt:   now,
+			UpdatedAt:   NullableTime{Time: now, Valid: true},
 			Metadata:    req.Metadata,
 		}
 
@@ -72,13 +73,14 @@ func TestProjectsService_Get(t *testing.T) {
 		assert.Equal(t, "/api/v1/projects/proj_123", r.URL.Path)
 		assert.Equal(t, "GET", r.Method)
 
+		now := time.Now()
 		response := Project{
 			ID:          "proj_123",
 			Name:        "Test Project",
 			Description: "Test Description",
 			Status:      ProjectStatusActive,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			CreatedAt:   now,
+			UpdatedAt:   NullableTime{Time: now, Valid: true},
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -103,7 +105,7 @@ func TestProjectsService_Get(t *testing.T) {
 
 func TestProjectsService_List(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/api/v1/projects", r.URL.Path)
+		assert.Equal(t, "/api/v1/zerodb/projects", r.URL.Path)
 		assert.Equal(t, "GET", r.Method)
 
 		// Check query parameters
@@ -123,9 +125,9 @@ func TestProjectsService_List(t *testing.T) {
 					Status: ProjectStatusSuspended,
 				},
 			},
-			TotalCount:  2,
-			Limit:  10,
-			Offset: 0,
+			TotalCount: 2,
+			Limit:      10,
+			Offset:     0,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -156,18 +158,20 @@ func TestProjectsService_List(t *testing.T) {
 
 func TestVectorsService_Upsert(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/api/v1/projects/proj_123/vectors", r.URL.Path)
-		assert.Equal(t, "PUT", r.Method)
+		// Live-confirmed path/shape against production, Refs #8393.
+		assert.Equal(t, "/api/v1/projects/proj_123/database/vectors/upsert-batch", r.URL.Path)
+		assert.Equal(t, "POST", r.Method)
 
-		var req UpsertVectorsRequest
+		var req []VectorItem
 		err := json.NewDecoder(r.Body).Decode(&req)
 		assert.NoError(t, err)
-		assert.Equal(t, 2, len(req.Vectors))
-		assert.Equal(t, "default", req.Namespace)
+		assert.Equal(t, 2, len(req))
+		assert.Equal(t, "default", req[0].Namespace)
 
 		response := UpsertVectorsResponse{
-			UpsertedCount: 2,
-			Namespace:     "default",
+			SuccessCount: 2,
+			ErrorCount:   0,
+			TotalTimeMs:  12.5,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -182,58 +186,57 @@ func TestVectorsService_Upsert(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	req := &UpsertVectorsRequest{
-		Vectors: []VectorItem{
-			{
-				ID:     "vec_1",
-				Vector: []float64{0.1, 0.2, 0.3},
-				Metadata: map[string]interface{}{
-					"category": "test",
-				},
-			},
-			{
-				ID:     "vec_2",
-				Vector: []float64{0.4, 0.5, 0.6},
+	vectors := []VectorItem{
+		{
+			VectorEmbedding: []float64{0.1, 0.2, 0.3},
+			Namespace:       "default",
+			Metadata: map[string]interface{}{
+				"category": "test",
 			},
 		},
-		Namespace: "default",
+		{
+			VectorEmbedding: []float64{0.4, 0.5, 0.6},
+			Namespace:       "default",
+		},
 	}
 
-	response, err := client.ZeroDB.Vectors.Upsert(ctx, "proj_123", req)
+	response, err := client.ZeroDB.Vectors.Upsert(ctx, "proj_123", vectors)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
-	assert.Equal(t, 2, response.UpsertedCount)
-	assert.Equal(t, "default", response.Namespace)
+	assert.Equal(t, 2, response.SuccessCount)
+	assert.Equal(t, 0, response.ErrorCount)
 }
 
 func TestVectorsService_Search(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/api/v1/projects/proj_123/vectors/search", r.URL.Path)
+		// Live-confirmed path/shape against production, Refs #8393.
+		assert.Equal(t, "/api/v1/projects/proj_123/database/vectors/search", r.URL.Path)
 		assert.Equal(t, "POST", r.Method)
 
 		var req VectorSearchRequest
 		err := json.NewDecoder(r.Body).Decode(&req)
 		assert.NoError(t, err)
-		assert.Equal(t, 3, len(req.Vector))
-		assert.Equal(t, 5, req.TopK)
+		assert.Equal(t, 3, len(req.QueryVector))
+		assert.Equal(t, 5, req.Limit)
 
 		response := VectorSearchResponse{
-			Matches: []VectorSearchMatch{
+			Vectors: []VectorMatch{
 				{
-					ID:    "vec_1",
-					Score: 0.95,
+					VectorID: "vec_1",
 					Metadata: map[string]interface{}{
 						"category": "test",
 					},
-					Vector: []float64{0.1, 0.2, 0.3},
+					VectorEmbedding: []float64{0.1, 0.2, 0.3},
+					Similarity:      0.95,
 				},
 				{
-					ID:    "vec_2",
-					Score: 0.87,
+					VectorID:   "vec_2",
+					Similarity: 0.87,
 				},
 			},
-			Namespace: "default",
+			TotalCount:   2,
+			SearchTimeMs: 3.2,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -249,45 +252,39 @@ func TestVectorsService_Search(t *testing.T) {
 
 	ctx := context.Background()
 	req := &VectorSearchRequest{
-		Vector:          []float64{0.1, 0.2, 0.3},
-		TopK:            5,
-		Namespace:       "default",
-		IncludeMetadata: true,
-		IncludeValues:   true,
+		QueryVector: []float64{0.1, 0.2, 0.3},
+		Limit:       5,
+		Namespace:   "default",
 	}
 
 	response, err := client.ZeroDB.Vectors.Search(ctx, "proj_123", req)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
-	assert.Equal(t, 2, len(response.Matches))
-	assert.Equal(t, "vec_1", response.Matches[0].ID)
-	assert.Equal(t, 0.95, response.Matches[0].Score)
+	assert.Equal(t, 2, len(response.Vectors))
+	assert.Equal(t, "vec_1", response.Vectors[0].VectorID)
+	assert.Equal(t, 0.95, response.Vectors[0].Similarity)
 }
 
 func TestMemoryService_Create(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/api/v1/memories", r.URL.Path)
+		// Live-confirmed path/shape against production, Refs #8393.
+		assert.Equal(t, "/api/v1/public/memory/simple/add", r.URL.Path)
 		assert.Equal(t, "POST", r.Method)
 
 		var req CreateMemoryRequest
 		err := json.NewDecoder(r.Body).Decode(&req)
 		assert.NoError(t, err)
-		assert.Equal(t, "Test Memory", req.Title)
 		assert.Equal(t, "Test content", req.Content)
+		assert.Equal(t, []string{"test", "memory"}, req.Tags)
 
-		response := MemoryItem{
-			ID:        "mem_123",
-			Title:     req.Title,
-			Content:   req.Content,
-			Tags:      req.Tags,
-			Priority:  req.Priority,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+		response := CreateMemoryResponse{
+			MemoryID: "mem_123",
+			Status:   "stored",
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
@@ -300,48 +297,33 @@ func TestMemoryService_Create(t *testing.T) {
 
 	ctx := context.Background()
 	req := &CreateMemoryRequest{
-		Title:    "Test Memory",
-		Content:  "Test content",
-		Tags:     []string{"test", "memory"},
-		Priority: MemoryPriorityHigh,
+		Content: "Test content",
+		Tags:    []string{"test", "memory"},
 	}
 
 	memory, err := client.ZeroDB.Memory.Create(ctx, req)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, memory)
-	assert.Equal(t, "mem_123", memory.ID)
-	assert.Equal(t, "Test Memory", memory.Title)
-	assert.Equal(t, MemoryPriorityHigh, memory.Priority)
+	assert.Equal(t, "mem_123", memory.MemoryID)
+	assert.Equal(t, "stored", memory.Status)
 }
 
 func TestMemoryService_Search(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/api/v1/memories/search", r.URL.Path)
-		assert.Equal(t, "POST", r.Method)
-
-		var req SearchMemoryRequest
-		err := json.NewDecoder(r.Body).Decode(&req)
-		assert.NoError(t, err)
-		assert.Equal(t, "test query", req.Query)
-		assert.Equal(t, 10, req.Limit)
+		// Live-confirmed path/shape against production, Refs #8393:
+		// a GET with query params, not a POST with a JSON body.
+		assert.Equal(t, "/api/v1/public/memory/simple/search", r.URL.Path)
+		assert.Equal(t, "GET", r.Method)
+		assert.Equal(t, "test query", r.URL.Query().Get("q"))
+		assert.Equal(t, "10", r.URL.Query().Get("limit"))
 
 		response := SearchMemoryResponse{
 			Results: []MemoryItem{
-				{
-					ID:       "mem_1",
-					Title:    "Memory 1",
-					Content:  "Test content 1",
-					Priority: MemoryPriorityMedium,
-				},
-				{
-					ID:       "mem_2",
-					Title:    "Memory 2",
-					Content:  "Test content 2",
-					Priority: MemoryPriorityLow,
-				},
+				{ID: "mem_1", Content: "Test content 1", RelevanceScore: 0.95},
+				{ID: "mem_2", Content: "Test content 2", RelevanceScore: 0.80},
 			},
-			Total: 2,
+			Count: 2,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -356,18 +338,12 @@ func TestMemoryService_Search(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	req := &SearchMemoryRequest{
-		Query:    "test query",
-		Limit:    10,
-		Semantic: true,
-	}
-
-	response, err := client.ZeroDB.Memory.Search(ctx, req)
+	response, err := client.ZeroDB.Memory.Search(ctx, "test query", 10)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, 2, len(response.Results))
-	assert.Equal(t, 2, response.Total)
+	assert.Equal(t, 2, response.Count)
 	assert.Equal(t, "mem_1", response.Results[0].ID)
 }
 
@@ -400,27 +376,24 @@ func TestVectorsService_Validation(t *testing.T) {
 	ctx := context.Background()
 
 	// Test Upsert with empty project ID
-	_, err = client.ZeroDB.Vectors.Upsert(ctx, "", &UpsertVectorsRequest{})
+	_, err = client.ZeroDB.Vectors.Upsert(ctx, "", []VectorItem{{VectorEmbedding: []float64{0.1}}})
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "project ID is required")
 
-	// Test Upsert with nil request
+	// Test Upsert with empty vectors
 	_, err = client.ZeroDB.Vectors.Upsert(ctx, "proj_123", nil)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "vectors cannot be empty")
+
+	// Test Search with nil request
+	_, err = client.ZeroDB.Vectors.Search(ctx, "proj_123", nil)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "request cannot be nil")
 
-	// Test Search with empty vector
-	_, err = client.ZeroDB.Vectors.Search(ctx, "proj_123", &VectorSearchRequest{Vector: []float64{}})
+	// Test Search with empty query_vector
+	_, err = client.ZeroDB.Vectors.Search(ctx, "proj_123", &VectorSearchRequest{QueryVector: []float64{}})
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "vector cannot be empty")
-
-	// Test Search with invalid TopK
-	_, err = client.ZeroDB.Vectors.Search(ctx, "proj_123", &VectorSearchRequest{
-		Vector: []float64{0.1, 0.2, 0.3},
-		TopK:   0,
-	})
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "topK must be greater than 0")
+	assert.Contains(t, err.Error(), "query_vector cannot be empty")
 }
 
 func TestMemoryService_Validation(t *testing.T) {
@@ -439,13 +412,8 @@ func TestMemoryService_Validation(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "content is required")
 
-	// Test Search with nil request
-	_, err = client.ZeroDB.Memory.Search(ctx, nil)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "request cannot be nil")
-
 	// Test Search with empty query
-	_, err = client.ZeroDB.Memory.Search(ctx, &SearchMemoryRequest{Query: ""})
+	_, err = client.ZeroDB.Memory.Search(ctx, "", 5)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "query is required")
 }

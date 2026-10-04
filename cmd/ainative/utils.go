@@ -15,11 +15,11 @@ func getClient() (*ainative.Client, error) {
 		return nil, fmt.Errorf("API key is required. Set AINATIVE_API_KEY environment variable or use --api-key flag")
 	}
 
-	config := &ainative.ClientConfig{
-		APIKey:    apiKey,
-		APISecret: apiSecret,
-		BaseURL:   baseURL,
-		OrgID:     orgID,
+	config := &ainative.Config{
+		APIKey:         apiKey,
+		APISecret:      apiSecret,
+		BaseURL:        baseURL,
+		OrganizationID: orgID,
 	}
 
 	return ainative.NewClient(config)

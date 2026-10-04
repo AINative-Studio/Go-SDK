@@ -42,62 +42,30 @@ var vectorsSearchCmd = &cobra.Command{
 			vector[i] = val
 		}
 
-		topK, _ := cmd.Flags().GetInt("top-k")
+		limit, _ := cmd.Flags().GetInt("top-k")
 		namespace, _ := cmd.Flags().GetString("namespace")
 
 		ctx := context.Background()
-		results, err := client.ZeroDB.Vectors.Search(ctx, &ainative.VectorSearchRequest{
-			ProjectID: projectID,
-			Vector:    vector,
-			TopK:      topK,
-			Namespace: namespace,
+		results, err := client.ZeroDB.Vectors.Search(ctx, projectID, &ainative.VectorSearchRequest{
+			QueryVector: vector,
+			Limit:       limit,
+			Namespace:   namespace,
 		})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error searching vectors: %v\n", err)
 			os.Exit(1)
 		}
 
-		fmt.Printf("✓ Found %d results\n", len(results.Matches))
+		fmt.Printf("✓ Found %d results\n", len(results.Vectors))
 		printOutput(results)
-	},
-}
-
-var vectorsStatsCmd = &cobra.Command{
-	Use:   "stats [project-id]",
-	Short: "Get vector index statistics",
-	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		client, err := getClient()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-
-		projectID := args[0]
-		namespace, _ := cmd.Flags().GetString("namespace")
-
-		ctx := context.Background()
-		stats, err := client.ZeroDB.Vectors.GetStats(ctx, projectID, namespace)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error getting vector stats: %v\n", err)
-			os.Exit(1)
-		}
-
-		fmt.Println("Vector Index Statistics:")
-		fmt.Println("=======================")
-		printOutput(stats)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(vectorsCmd)
 	vectorsCmd.AddCommand(vectorsSearchCmd)
-	vectorsCmd.AddCommand(vectorsStatsCmd)
 
 	// Flags for search
 	vectorsSearchCmd.Flags().IntP("top-k", "k", 5, "Number of results to return")
 	vectorsSearchCmd.Flags().StringP("namespace", "n", "default", "Vector namespace")
-
-	// Flags for stats
-	vectorsStatsCmd.Flags().StringP("namespace", "n", "", "Vector namespace")
 }

@@ -3,7 +3,6 @@ package ainative
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,7 +15,7 @@ func BenchmarkClientCreation(b *testing.B) {
 	config := &Config{
 		APIKey: "bench-key",
 	}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		client, err := NewClient(config)
@@ -63,7 +62,7 @@ func BenchmarkProjectOperations(b *testing.B) {
 			}
 		}
 	})
-	
+
 	b.Run("GetProject", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			_, err := client.ZeroDB.Projects.Get(ctx, "bench_proj_123")
@@ -78,25 +77,25 @@ func BenchmarkVectorOperations(b *testing.B) {
 	// Setup mock server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case "/api/v1/zerodb/projects/proj_123/vectors":
+		case "/api/v1/projects/proj_123/database/vectors/upsert-batch":
 			// Upsert response
 			response := UpsertVectorsResponse{
-				UpsertedCount: 1,
-				Namespace:     "default",
+				SuccessCount: 1,
+				TotalTimeMs:  1.0,
 			}
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(response)
-		case "/api/v1/zerodb/projects/proj_123/vectors/search":
+		case "/api/v1/projects/proj_123/database/vectors/search":
 			// Search response
 			response := VectorSearchResponse{
-				Matches: []VectorSearchMatch{
+				Vectors: []VectorMatch{
 					{
-						ID:    "vec_1",
-						Score: 0.95,
-						Vector: []float64{0.1, 0.2, 0.3},
+						VectorID:        "vec_1",
+						Similarity:      0.95,
+						VectorEmbedding: []float64{0.1, 0.2, 0.3},
 					},
 				},
-				Namespace: "default",
+				TotalCount: 1,
 			}
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(response)
@@ -116,30 +115,26 @@ func BenchmarkVectorOperations(b *testing.B) {
 	projectID := "proj_123"
 
 	// Prepare test data
-	upsertReq := &UpsertVectorsRequest{
-		Vectors: []VectorItem{
-			{
-				ID:     "bench_vec_1",
-				Vector: []float64{0.1, 0.2, 0.3},
-				Metadata: map[string]interface{}{
-					"category": "benchmark",
-				},
+	upsertVectors := []VectorItem{
+		{
+			VectorEmbedding: []float64{0.1, 0.2, 0.3},
+			Namespace:       "default",
+			Metadata: map[string]interface{}{
+				"category": "benchmark",
 			},
 		},
-		Namespace: "default",
 	}
 
 	searchReq := &VectorSearchRequest{
-		Vector:          []float64{0.1, 0.2, 0.3},
-		TopK:            5,
-		Namespace:       "default",
-		IncludeMetadata: true,
+		QueryVector: []float64{0.1, 0.2, 0.3},
+		Limit:       5,
+		Namespace:   "default",
 	}
 
 	b.ResetTimer()
 	b.Run("UpsertVectors", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_, err := client.ZeroDB.Vectors.Upsert(ctx, projectID, upsertReq)
+			_, err := client.ZeroDB.Vectors.Upsert(ctx, projectID, upsertVectors)
 			if err != nil {
 				b.Fatal(err)
 			}
@@ -160,28 +155,21 @@ func BenchmarkMemoryOperations(b *testing.B) {
 	// Setup mock server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case "/api/v1/memory":
+		case "/api/v1/public/memory/simple/add":
 			// Create response
-			response := MemoryItem{
-				ID:       "bench_mem_123",
-				Title:    "Benchmark Memory",
-				Content:  "Test content for benchmarking",
-				Priority: MemoryPriorityMedium,
+			response := CreateMemoryResponse{
+				MemoryID: "bench_mem_123",
+				Status:   "stored",
 			}
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(response)
-		case "/api/v1/memory/search":
+		case "/api/v1/public/memory/simple/search":
 			// Search response
 			response := SearchMemoryResponse{
 				Results: []MemoryItem{
-					{
-						ID:       "bench_mem_1",
-						Title:    "Memory 1",
-						Content:  "Benchmark content 1",
-						Priority: MemoryPriorityMedium,
-					},
+					{ID: "bench_mem_1", Content: "Benchmark content 1"},
 				},
-				Total: 1,
+				Count: 1,
 			}
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(response)
@@ -199,16 +187,8 @@ func BenchmarkMemoryOperations(b *testing.B) {
 
 	ctx := context.Background()
 	createReq := &CreateMemoryRequest{
-		Title:    "Benchmark Memory",
-		Content:  "Test content for benchmarking",
-		Priority: MemoryPriorityMedium,
-		Tags:     []string{"benchmark", "test"},
-	}
-
-	searchReq := &SearchMemoryRequest{
-		Query:    "benchmark",
-		Limit:    10,
-		Semantic: true,
+		Content: "Test content for benchmarking",
+		Tags:    []string{"benchmark", "test"},
 	}
 
 	b.ResetTimer()
@@ -223,7 +203,7 @@ func BenchmarkMemoryOperations(b *testing.B) {
 
 	b.Run("SearchMemory", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_, err := client.ZeroDB.Memory.Search(ctx, searchReq)
+			_, err := client.ZeroDB.Memory.Search(ctx, "benchmark", 10)
 			if err != nil {
 				b.Fatal(err)
 			}
@@ -407,7 +387,7 @@ func BenchmarkConcurrentOperations(b *testing.B) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Add small delay to simulate real API latency
 		time.Sleep(10 * time.Millisecond)
-		
+
 		response := Project{
 			ID:     "concurrent_proj_123",
 			Name:   "Concurrent Project",
@@ -446,8 +426,8 @@ func BenchmarkConcurrentOperations(b *testing.B) {
 func BenchmarkLargePayloads(b *testing.B) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := UpsertVectorsResponse{
-			UpsertedCount: 100,
-			Namespace:     "large_batch",
+			SuccessCount: 100,
+			TotalTimeMs:  50.0,
 		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
@@ -466,35 +446,32 @@ func BenchmarkLargePayloads(b *testing.B) {
 	projectID := "proj_123"
 
 	// Generate large batch of vectors
-	generateLargeBatch := func(size int) *UpsertVectorsRequest {
+	generateLargeBatch := func(size int) []VectorItem {
 		vectors := make([]VectorItem, size)
 		for i := 0; i < size; i++ {
 			vector := make([]float64, 384) // Standard embedding size
 			for j := range vector {
 				vector[j] = float64(i*j) / 1000.0
 			}
-			
+
 			vectors[i] = VectorItem{
-				ID:     fmt.Sprintf("large_vec_%d", i),
-				Vector: vector,
+				VectorEmbedding: vector,
+				Namespace:       "large_batch",
 				Metadata: map[string]interface{}{
 					"batch_id": "large_batch",
 					"index":    i,
 				},
 			}
 		}
-		
-		return &UpsertVectorsRequest{
-			Vectors:   vectors,
-			Namespace: "large_batch",
-		}
+
+		return vectors
 	}
 
 	b.ResetTimer()
 	b.Run("SmallBatch_10", func(b *testing.B) {
-		req := generateLargeBatch(10)
+		vectors := generateLargeBatch(10)
 		for i := 0; i < b.N; i++ {
-			_, err := client.ZeroDB.Vectors.Upsert(ctx, projectID, req)
+			_, err := client.ZeroDB.Vectors.Upsert(ctx, projectID, vectors)
 			if err != nil {
 				b.Fatal(err)
 			}
@@ -502,9 +479,9 @@ func BenchmarkLargePayloads(b *testing.B) {
 	})
 
 	b.Run("MediumBatch_100", func(b *testing.B) {
-		req := generateLargeBatch(100)
+		vectors := generateLargeBatch(100)
 		for i := 0; i < b.N; i++ {
-			_, err := client.ZeroDB.Vectors.Upsert(ctx, projectID, req)
+			_, err := client.ZeroDB.Vectors.Upsert(ctx, projectID, vectors)
 			if err != nil {
 				b.Fatal(err)
 			}
@@ -512,9 +489,9 @@ func BenchmarkLargePayloads(b *testing.B) {
 	})
 
 	b.Run("LargeBatch_1000", func(b *testing.B) {
-		req := generateLargeBatch(1000)
+		vectors := generateLargeBatch(1000)
 		for i := 0; i < b.N; i++ {
-			_, err := client.ZeroDB.Vectors.Upsert(ctx, projectID, req)
+			_, err := client.ZeroDB.Vectors.Upsert(ctx, projectID, vectors)
 			if err != nil {
 				b.Fatal(err)
 			}

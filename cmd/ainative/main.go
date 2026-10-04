@@ -54,7 +54,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&apiKey, "api-key", "", "AINative API key (or set AINATIVE_API_KEY)")
 	rootCmd.PersistentFlags().StringVar(&apiSecret, "api-secret", "", "API secret (or set AINATIVE_API_SECRET)")
 	rootCmd.PersistentFlags().StringVar(&baseURL, "base-url", "https://api.ainative.studio", "API base URL")
-	rootCmd.PersistentFlags().StringVar(&orgID, "org-id", "", "Organization ID")
+	rootCmd.PersistentFlags().StringVar(&orgID, "org-id", "", "Organization ID (called \"workspace\" in the AINative dashboard)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
 	rootCmd.PersistentFlags().StringVarP(&outputFormat, "output", "o", "json", "Output format (json|table|yaml)")
 
