@@ -212,8 +212,11 @@ func NewClient(config *Config) (*Client, error) {
 		httpClient.SetDebug(true)
 	}
 
-	// Create rate limiter
-	rateLimiter := rate.NewLimiter(rate.Limit(config.RateLimit), config.RateLimit)
+	// Create rate limiter. Burst is intentionally 1, not config.RateLimit: a burst
+	// equal to the rate let every request within a short burst of exactly RateLimit
+	// requests through immediately, defeating the limiter for request patterns at
+	// or under that size (see #8439).
+	rateLimiter := rate.NewLimiter(rate.Limit(config.RateLimit), 1)
 
 	// Set up tracer
 	tracer := config.Tracer
