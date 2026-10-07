@@ -110,11 +110,11 @@ func main() {
 
 		// Example 7: List Agent Types
 		fmt.Println("\n🤖 Listing Agent Types...")
-		agentTypes, err := client.AgentSwarm.ListAgentTypes(ctx)
+		agentTypeNames, err := client.AgentSwarm.ListAgentTypeNames(ctx)
 		if err != nil {
 			log.Printf("Failed to list agent types: %v", err)
 		} else {
-			fmt.Printf("✅ Available agent types: %v\n", agentTypes)
+			fmt.Printf("✅ Available agent types: %v\n", agentTypeNames)
 		}
 
 		// Example 8: Clean up - Delete the project

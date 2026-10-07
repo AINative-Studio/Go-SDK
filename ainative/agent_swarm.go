@@ -370,18 +370,68 @@ func (s *AgentSwarmService) GetTask(ctx context.Context, taskID string) (*Orches
 	return &result, nil
 }
 
-// ListAgentTypes lists available agent types
-func (s *AgentSwarmService) ListAgentTypes(ctx context.Context) ([]AgentType, error) {
+// agentTypesPath is the real mounted path of the agent-types endpoint.
+//
+// The handler is app/api/admin/agent_swarm.py::get_available_agent_types, decorated
+// GET "/agent-types". Its router is mounted by app/api/routers/admin.py at prefix
+// "/agent-swarm" under admin_router, and admin_router is mounted both at "/admin"
+// (main.py) and at "/api/v1/admin" (api_v1/api.py). The SDK uses the versioned mount
+// for consistency with every other path in this package. Refs #8478.
+const agentTypesPath = "/api/v1/admin/agent-swarm/agent-types"
+
+// AgentTypeInfo describes one available agent type and its capabilities, as
+// returned by GET /api/v1/admin/agent-swarm/agent-types. It mirrors the backend's
+// AgentTypeEntry schema (app/schemas/admin/agent_swarm.py).
+type AgentTypeInfo struct {
+	// Name is the agent type identifier (e.g. "architect", "developer").
+	Name AgentType `json:"name"`
+	// Description is a human-readable summary of the agent's role.
+	Description string `json:"description"`
+	// Capabilities lists the discrete skills this agent type provides.
+	Capabilities []string `json:"capabilities"`
+	// Models lists the model identifiers this agent type can be backed by.
+	Models []string `json:"models"`
+	// AvgCompletionTime is the historical average task completion time in minutes.
+	AvgCompletionTime float64 `json:"avg_completion_time"`
+}
+
+// ListAgentTypes lists the available agent types along with their capabilities,
+// backing models, and average completion times.
+//
+// The backend returns full capability objects, not bare type names; use
+// ListAgentTypeNames if only the identifiers are needed.
+func (s *AgentSwarmService) ListAgentTypes(ctx context.Context) ([]AgentTypeInfo, error) {
 	var result struct {
-		AgentTypes []AgentType `json:"agent_types"`
+		AgentTypes []AgentTypeInfo `json:"agent_types"`
 	}
 
-	err := s.client.makeRequest(ctx, "GET", "/api/v1/agent-swarm/agent-types", nil, &result)
+	err := s.client.makeRequest(ctx, "GET", agentTypesPath, nil, &result)
 	if err != nil {
 		return nil, err
 	}
 
+	if result.AgentTypes == nil {
+		return nil, fmt.Errorf("unexpected response from %s: missing or empty \"agent_types\" array", agentTypesPath)
+	}
+
 	return result.AgentTypes, nil
+}
+
+// ListAgentTypeNames returns just the identifiers of the available agent types.
+// It is a convenience wrapper over ListAgentTypes for callers that do not need
+// the capability metadata.
+func (s *AgentSwarmService) ListAgentTypeNames(ctx context.Context) ([]AgentType, error) {
+	types, err := s.ListAgentTypes(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	names := make([]AgentType, 0, len(types))
+	for _, t := range types {
+		names = append(names, t.Name)
+	}
+
+	return names, nil
 }
 
 // GetSwarmMetrics retrieves detailed metrics for a swarm

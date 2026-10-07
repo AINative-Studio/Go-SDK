@@ -53,7 +53,9 @@ func main() {
 
 	fmt.Printf("✅ Available agent types (%d):\n", len(agentTypes))
 	for i, agentType := range agentTypes {
-		fmt.Printf("   %d. %s\n", i+1, agentType)
+		fmt.Printf("   %d. %s — %s (capabilities: %v, avg %.1f min)\n",
+			i+1, agentType.Name, agentType.Description,
+			agentType.Capabilities, agentType.AvgCompletionTime)
 	}
 
 	// Example 2: Start a Code Analysis Swarm

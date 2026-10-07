@@ -270,25 +270,48 @@ func TestAgentSwarmService_GetTask(t *testing.T) {
 	assert.NotNil(t, task.CompletedAt)
 }
 
-func TestAgentSwarmService_ListAgentTypes(t *testing.T) {
-	t.Skip("Pre-existing contract mismatch, unrelated to this CI fix: ListAgentTypes() expects " +
-		"{\"agent_types\": []AgentType} (AgentType = string) but the real backend " +
-		"(src/backend/app/api/admin/agent_swarm.py GET /agent-types) returns an array of " +
-		"capability objects, and this test's own mock also asserts the wrong path. See #8478.")
+// agentTypesBackendFixture mirrors, byte-for-byte in shape, what the real backend
+// returns from GET /api/v1/admin/agent-swarm/agent-types
+// (src/backend/app/api/admin/agent_swarm.py::get_available_agent_types, response_model
+// AvailableAgentTypesResponse -> {"agent_types": [AgentTypeEntry, ...]}).
+// Verified against the live deployment's /openapi.json. Refs #8478.
+const agentTypesBackendFixture = `{
+  "agent_types": [
+    {
+      "name": "architect",
+      "description": "System architecture and database design",
+      "capabilities": ["system_design", "database_schema", "api_specification"],
+      "models": ["gpt-4", "claude-3", "gpt-3.5"],
+      "avg_completion_time": 5.2
+    },
+    {
+      "name": "developer",
+      "description": "Code generation and implementation",
+      "capabilities": ["frontend_development", "backend_api", "database_integration"],
+      "models": ["claude-3", "gpt-4", "codex"],
+      "avg_completion_time": 8.7
+    },
+    {
+      "name": "tester",
+      "description": "Test generation and quality assurance",
+      "capabilities": ["unit_testing", "integration_testing", "test_automation"],
+      "models": ["gpt-3.5", "claude-3", "gpt-4"],
+      "avg_completion_time": 3.1
+    }
+  ]
+}`
 
+func TestAgentSwarmService_ListAgentTypes(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/api/v1/agent-types", r.URL.Path)
+		// The real route is mounted by app/api/routers/admin.py at prefix
+		// "/agent-swarm" under admin_router, which main.py mounts at /admin and
+		// api_v1/api.py also mounts at /api/v1/admin. The SDK targets the
+		// versioned mount.
+		assert.Equal(t, "/api/v1/admin/agent-swarm/agent-types", r.URL.Path)
 		assert.Equal(t, "GET", r.Method)
 
-		response := []string{
-			"analyzer",
-			"optimizer",
-			"security_scanner",
-			"code_reviewer",
-		}
-
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(response)
+		_, _ = w.Write([]byte(agentTypesBackendFixture))
 	}))
 	defer server.Close()
 
@@ -302,10 +325,68 @@ func TestAgentSwarmService_ListAgentTypes(t *testing.T) {
 	agentTypes, err := client.AgentSwarm.ListAgentTypes(ctx)
 
 	assert.NoError(t, err)
-	assert.NotNil(t, agentTypes)
-	assert.Equal(t, 4, len(agentTypes))
-	assert.Contains(t, agentTypes, "analyzer")
-	assert.Contains(t, agentTypes, "optimizer")
+	require.Len(t, agentTypes, 3)
+
+	// Every field the backend sends must survive decoding -- the old
+	// []AgentType (string) return type silently dropped all of them.
+	assert.Equal(t, AgentType("architect"), agentTypes[0].Name)
+	assert.Equal(t, "System architecture and database design", agentTypes[0].Description)
+	assert.Equal(t, []string{"system_design", "database_schema", "api_specification"}, agentTypes[0].Capabilities)
+	assert.Equal(t, []string{"gpt-4", "claude-3", "gpt-3.5"}, agentTypes[0].Models)
+	assert.InDelta(t, 5.2, agentTypes[0].AvgCompletionTime, 1e-9)
+
+	assert.Equal(t, AgentType("developer"), agentTypes[1].Name)
+	assert.Equal(t, []string{"claude-3", "gpt-4", "codex"}, agentTypes[1].Models)
+	assert.InDelta(t, 8.7, agentTypes[1].AvgCompletionTime, 1e-9)
+
+	assert.Equal(t, AgentType("tester"), agentTypes[2].Name)
+	assert.InDelta(t, 3.1, agentTypes[2].AvgCompletionTime, 1e-9)
+}
+
+// TestAgentSwarmService_ListAgentTypeNames covers the name-only convenience
+// helper, which is what the pre-#8478 []AgentType return value was trying
+// (and failing) to be.
+func TestAgentSwarmService_ListAgentTypeNames(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/api/v1/admin/agent-swarm/agent-types", r.URL.Path)
+		assert.Equal(t, "GET", r.Method)
+
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(agentTypesBackendFixture))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&Config{
+		APIKey:  "test-key",
+		BaseURL: server.URL,
+	})
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	names, err := client.AgentSwarm.ListAgentTypeNames(ctx)
+
+	assert.NoError(t, err)
+	assert.Equal(t, []AgentType{"architect", "developer", "tester"}, names)
+}
+
+// TestAgentSwarmService_ListAgentTypes_RejectsLegacyStringArray pins the bug
+// that #8478 fixed: the backend never returned a bare []string, and the SDK
+// must not silently decode one into an empty result.
+func TestAgentSwarmService_ListAgentTypes_RejectsLegacyStringArray(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]string{"analyzer", "optimizer"})
+	}))
+	defer server.Close()
+
+	client, err := NewClient(&Config{
+		APIKey:  "test-key",
+		BaseURL: server.URL,
+	})
+	require.NoError(t, err)
+
+	_, err = client.AgentSwarm.ListAgentTypes(context.Background())
+	assert.Error(t, err, "a bare JSON array is not the documented envelope and must not decode silently")
 }
 
 func TestAgentSwarmService_GetSwarmMetrics(t *testing.T) {
